@@ -31,9 +31,29 @@ cd C:\cloud-network-security-lab
 
 ## Step 4 - Confirm Public Access Is Actually Blocked
 
+Use an account key, not an unauthenticated or ambiguously-authenticated
+request. This matters: a bare Invoke-WebRequest to the account root
+returns a generic parameter error regardless of network settings, and even
+Get-AzStorageContainer using your Az PowerShell session's default context
+can fail with an identical 403 AuthorizationFailure due to a missing
+data-plane RBAC role - completely independent of whether the network
+block is actually working. Both of these looked like evidence during this
+lab's build but weren't actually testing the right thing.
+
+The clean test uses the storage account key directly - the most privileged
+credential available, requiring no RBAC data role, so a rejection can only
+be explained by the network control itself:
+
 ```powershell
-Invoke-WebRequest -Uri "https://stmigrationlabjane01.blob.core.windows.net/" -UseBasicParsing
+$key = (Get-AzStorageAccountKey -ResourceGroupName "rg-data-migration-lab" -Name "stmigrationlabjane01")[0].Value
+$ctxKey = New-AzStorageContext -StorageAccountName "stmigrationlabjane01" -StorageAccountKey $key
+Get-AzStorageContainer -Context $ctxKey
 ```
+
+Run this from your local machine (outside the VNet). A valid account key
+being rejected with 403 AuthorizationFailure purely because of where the
+request originated is the actual, unambiguous proof this lab set out to
+demonstrate.
 
 **Evidence to capture:**
 - 04-public-access-blocked.png
