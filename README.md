@@ -51,6 +51,30 @@ claimed as free.
 - **Private DNS Zone**: no charge for the zone itself; negligible query
   volume at this lab's scale
 
+## Screenshots
+
+Evidence of the network deployment, the NSG rules, and the access restriction actually working - captured against a live Azure subscription during this build. Files live in `docs/screenshots/`.
+
+**1. Network Deployed**
+![Network deployed](docs/screenshots/01-network-deployed.png)
+The VNet, both subnets, and their respective NSGs confirmed via PowerShell verification output - the foundation every later step in this project depends on.
+
+**2. NSG Rules Confirmed in Portal**
+![NSG rules portal view](docs/screenshots/02-nsg-rules-portal-view.png)
+The data subnet's NSG showing `Allow-From-AppSubnet` and the explicit `Deny-Internet-Inbound` rule, alongside Azure's default rules underneath.
+
+**3. Private Endpoint Created**
+![Private Endpoint created](docs/screenshots/03-private-endpoint-created.png)
+The Private Endpoint and its Private DNS configuration successfully deployed, with `PublicNetworkAccess: Disabled` confirmed on the target storage account.
+
+**4. Public Access Genuinely Blocked**
+![Public access blocked](docs/screenshots/04-public-access-blocked.png)
+A valid storage account key - the most privileged credential available, requiring no RBAC data role - rejected with `403 AuthorizationFailure` purely because the request originated outside the VNet. This took three progressively cleaner test attempts to isolate properly from authentication noise, and is the single strongest piece of evidence in this project.
+
+**5. Private Endpoint Approved**
+![Private Endpoint portal view](docs/screenshots/05-private-endpoint-portal-view.png)
+The Private Endpoint connection confirmed as **Approved** directly on the storage account's own Networking blade.
+
 ## Setup Guide
 
 Full steps: [`docs/setup-guide.md`](docs/setup-guide.md).
@@ -68,6 +92,36 @@ Full steps: [`docs/setup-guide.md`](docs/setup-guide.md).
   DNS zone configuration to actually resolve correctly from inside the VNet
 - **Defence in depth**: network-layer controls as one layer among several
   (identity, RBAC, network) rather than a single point of protection
+
+## Conclusion
+
+This project set out to close a real gap in this portfolio: every earlier
+project secured identity and access, but none had addressed whether a
+resource was reachable from the public internet at all. That gap is closed
+here - a segmented VNet with deny-by-default NSGs, and a Private Endpoint
+that removes a storage account from public exposure entirely, verified not
+by configuration alone but by a genuine, unambiguous failed access attempt
+from outside the network.
+
+That verification step is worth calling out specifically. The first two
+attempts to prove public access was blocked both looked like evidence but
+weren't: a bare request to the account root returned a generic parameter
+error regardless of network settings, and an RBAC-authenticated request
+could fail identically due to a missing data-plane role, independent of
+whether the network control was working at all. Recognising that ambiguity,
+rather than accepting the first plausible-looking failure as proof, and
+narrowing down to a test using the account key specifically - the one
+credential that removes every other variable - is the actual skill this
+project demonstrates most clearly. A security control that "looks blocked"
+and a security control that's been rigorously proven blocked are different
+claims, and only one of them is worth putting in front of an employer.
+
+This also marks the point where this portfolio's tag governance policy,
+deployed in the very first cost governance project, caught its fourth
+distinct resource across four separate later projects - an Automation
+Account, a Function App, a Workbook, and now a Private DNS Zone. That
+consistency, entirely automatic and entirely unplanned at the time each
+later project was built, is what policy-based governance is actually for.
 
 ## Author
 
