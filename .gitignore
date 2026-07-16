@@ -1,0 +1,10 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Never commit credentials
+*.pfx
+*.pem
+secrets.json
+.env
