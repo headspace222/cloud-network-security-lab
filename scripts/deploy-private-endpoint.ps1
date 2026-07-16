@@ -89,7 +89,7 @@ try {
     $zoneName = "privatelink.blob.core.windows.net"
     $zone = Get-AzPrivateDnsZone -ResourceGroupName $ResourceGroupName -Name $zoneName -ErrorAction SilentlyContinue
     if (-not $zone) {
-        $zone = New-AzPrivateDnsZone -ResourceGroupName $ResourceGroupName -Name $zoneName -ErrorAction Stop
+        $zone = New-AzPrivateDnsZone -ResourceGroupName $ResourceGroupName -Name $zoneName -Tag $tags -ErrorAction Stop
         Write-Host "  [OK] Private DNS zone created." -ForegroundColor Green
     } else {
         Write-Host "  [OK] Private DNS zone already exists." -ForegroundColor Green
@@ -100,6 +100,7 @@ try {
         -ZoneName $zoneName `
         -Name "link-to-$VNetName" `
         -VirtualNetworkId $vnet.Id `
+        -Tag $tags `
         -ErrorAction Stop | Out-Null
     Write-Host "  [OK] DNS zone linked to VNet." -ForegroundColor Green
 

@@ -61,6 +61,17 @@ Endpoint misconfiguration: the endpoint itself gets created correctly, but
 DNS resolution is overlooked, and the resource becomes unreachable from
 anywhere until someone diagnoses the DNS gap specifically.
 
+## A Cross-Project Finding: The Tag Policy Catches Everything
+
+The cost governance lab's enforce-mandatory-tags policy, deployed weeks
+earlier in this portfolio, correctly blocked this lab's Private DNS Zone
+creation when the deployment script initially omitted tags on that specific
+resource - the same pattern that previously caught an Automation Account,
+a Function App, and a Log Analytics-linked Workbook in other projects. This
+is direct, repeated evidence that a policy deployed once continues
+enforcing consistently across every subsequent project in this portfolio,
+regardless of which script or tool creates the resource.
+
 ## What I'd Add at Enterprise Scale
 
 - Application Security Groups (ASGs), grouping resources by role rather
